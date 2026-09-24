@@ -1,0 +1,14 @@
+# Nefu project config file - NC component demo
+# Docs: https://nefu.dev/docs/config
+
+entry = "index.html"
+output = "nc-demo"
+description = "Nefu .nc component demo app"
+version = "1.0.0"
+author = "Nefu Team"
+debug = true
+window_width = 1200
+window_height = 900
+fullscreen = false
+resizable = true
+user_agent = "nefu/1.0"

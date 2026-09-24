@@ -1,0 +1,21 @@
+# Nefu 3D open-world game configuration
+entry = "index.html"
+output = "3d-world-game"
+description = "3D open-world exploration game"
+version = "1.0.0"
+author = "Nefu Game Studio"
+
+# Window configuration
+window_width = 1280
+window_height = 720
+fullscreen = false
+resizable = true
+decorations = true
+title = "3D Open World Exploration"
+
+# Rendering optimization
+rendering_mode = "high-performance"
+render_optimization = true
+
+# Security policy
+context_menu = false

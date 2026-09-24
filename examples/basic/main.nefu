@@ -1,0 +1,33 @@
+[app]
+name = "Nefu Basic Example"
+version = "1.0.0"
+width = 1024
+height = 768
+resizable = true
+fullscreen = false
+icon = ""
+
+[build]
+entry = "index.html"
+preload = "preload.js"
+output = "dist/basic-demo.exe"
+encrypt = true
+compress = true
+
+[dev]
+port = 3900
+open = true
+watch = true
+
+[window]
+title = "Nefu Basic Example"
+min_width = 800
+min_height = 600
+center = true
+frameless = false
+always_on_top = false
+
+[tray]
+enabled = false
+icon = ""
+tooltip = "Nefu Basic Example"

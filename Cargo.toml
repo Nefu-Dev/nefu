@@ -1,0 +1,63 @@
+[package]
+name = "nefu"
+version = "1.0.0"
+edition = "2021"
+description = "A tool that packages web projects into standalone desktop executables"
+authors = ["Nefu Team"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+wry = "0.41"
+tao = "0.30"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+anyhow = "1"
+walkdir = "2"
+zip = "0.6"
+log = "0.4"
+env_logger = "0.11"
+notify = "6"
+mime_guess = "2"
+tiny_http = "0.12"
+sha2 = "0.10"
+sha1 = "0.10"
+lru = "0.12"
+aes-gcm = "0.10"
+rand = "0.8"
+base64 = "0.22"
+uuid = { version = "1", features = ["v4"] }
+
+# Desktop integration
+arboard = "3"               # clipboard
+rfd = "0.15"                # native dialogs
+fs2 = "0.4"                 # file lock (single instance)
+image = { version = "0.25", default-features = false, features = ["png", "ico", "jpeg", "gif", "bmp"] }
+tray-icon = "0.19"          # system tray
+ureq = { version = "2", default-features = false, features = ["tls"] }
+
+# Electron-level features
+sysinfo = "0.30"            # system info (CPU/memory/process)
+notify-rust = "4"           # desktop notifications
+global-hotkey = "0.6"       # global hotkeys
+
+# New Electron module dependencies
+dirs-next = "2"             # system paths (app.getPath)
+hex = "0.4"                 # hex encoding (safeStorage)
+hmac = "0.12"               # HMAC key derivation (safeStorage)
+
+# SQL management system
+rusqlite = { version = "0.31", features = ["bundled"] }  # embedded SQLite database
+
+# Web page source fetching
+encoding_rs = "0.8"         # character encoding detection and conversion
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

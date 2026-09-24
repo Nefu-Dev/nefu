@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nefu - Turn Web Pages into Desktop Apps</title>
+    <meta name="description" content="Nefu is a lightweight tool that packages Web projects into standalone desktop executables. Supports encrypted packaging, hot-reload development, and the .nc component language.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+
+        /* Code block styles */
+        .code-block {
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .code-header {
+            background: #334155;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .code-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .code-content {
+            padding: 20px;
+            color: #e2e8f0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .code-keyword { color: #c084fc; }
+        .code-string { color: #86efac; }
+        .code-comment { color: #64748b; }
+        .code-func { color: #60a5fa; }
+        .code-number { color: #fbbf24; }
+
+        /* NC preview styles */
+        .nc-preview {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .nc-preview-header {
+            background: #f8fafc;
+            padding: 10px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nc-preview-body {
+            padding: 24px;
+            background: white;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 bg-white antialiased">
+
+    <!-- ============================================================ -->
+    <!-- Navbar -->
+    <!-- ============================================================ -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">N</div>
+                    <span class="text-xl font-bold text-gray-900">Nefu</span>
+                </div>
+
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Features</a>
+                    <a href="#quickstart" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Quick Start</a>
+                    <a href="#nc-demo" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">.nc Components</a>
+                    <a href="#download" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">Download</a>
+                    <a href="https://github.com/nefu/nefu" target="_blank" class="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">GitHub</a>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="hidden md:block">
+                    <a href="#quickstart" class="bg-brand-500 hover:bg-brand-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-all hover:shadow-lg hover:shadow-brand-500/25">
+                        Get Started
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden p-2 text-gray-600" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <a href="#features" class="block py-2 text-gray-600 hover:text-brand-600">Features</a>
+                <a href="#quickstart" class="block py-2 text-gray-600 hover:text-brand-600">Quick Start</a>
+                <a href="#nc-demo" class="block py-2 text-gray-600 hover:text-brand-600">.nc Components</a>
+                <a href="#download" class="block py-2 text-gray-600 hover:text-brand-600">Download</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================================ -->
+    <!-- Hero Section -->
+    <!-- ============================================================ -->
+    <section class="pt-32 pb-20 lg:pt-40 lg:pb-28 relative overflow-hidden">
+        <!-- Background decoration -->
+        <div class="absolute inset-0 -z-10">
+            <div class="absolute top-20 left-1/4 w-72 h-72 bg-brand-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
+            <div class="absolute top-40 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style="animation-delay: 1s;"></div>
+            <div class="absolute bottom-20 left-1/3 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-float" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 bg-brand-50 border border-brand-100 rounded-full px-4 py-1.5 mb-8 animate-fade-in-up">
+                <span class="w-2 h-2 bg-brand-500 rounded-full animate-pulse"></span>
+                <span class="text-sm font-medium text-brand-700">v1.0.0 Released</span>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 animate-fade-in-up delay-100">
+                Nefu
+                <span class="block text-3xl lg:text-5xl mt-2 font-semibold text-gray-600">Turn Web Pages into Desktop Apps</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-lg lg:text-xl text-gray-500 max-w-2xl mx-auto mb-10 animate-fade-in-up delay-200">
+                A lightweight tool that packages your HTML/CSS/JS projects into standalone desktop executables.<br>
+                No Electron, no Node.js — just double-click to run.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up delay-300">
+                <a href="#quickstart" class="bg-brand-500 hover:bg-brand-600 text-white px-8 py-3.5 rounded-xl text-lg font-semibold transition-all hover:shadow-xl hover:shadow-brand-500/25 hover:-translate-y-0.5">
+                    🚀 Quick Start
+                </a>
+                <a href="https://github.com/nefu/nefu" target="_blank" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-8 py-3.5 rounded-xl text-lg font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    GitHub
+                </a>
+            </div>
+
+            <!-- Terminal Preview -->
+            <div class="mt-16 max-w-2xl mx-auto animate-fade-in-up delay-400">
+                <div class="code-block shadow-2xl shadow-gray-900/20">
+                    <div class="code-header">
+                        <div class="code-dot bg-red-400"></div>
+                        <div class="code-dot bg-yellow-400"></div>
+                        <div class="code-dot bg-green-400"></div>
+                        <span class="ml-3 text-xs text-gray-400">Terminal</span>
+                    </div>
+                    <div class="code-content text-left">
+                        <div><span class="code-comment"># Create a new project</span></div>
+                        <div>$ <span class="code-func">nefu</span> init my-app</div>
+                        <div class="text-green-400">✅ Project 'my-app' created!</div>
+                        <div class="mt-2"><span class="code-comment"># Start the dev server</span></div>
+                        <div>$ <span class="code-func">cd</span> my-app && <span class="code-func">nefu</span> start</div>
+                        <div class="text-blue-400">🚀 Dev server running at http://localhost:3900</div>
+                        <div class="mt-2"><span class="code-comment"># Package as a desktop app</span></div>
+                        <div>$ <span class="code-func">nefu</span> build</div>
+                        <div class="text-green-400">✅ Build successful! Output: dist/my-app.exe (8.2 MB)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Features Section -->
+    <!-- ============================================================ -->
+    <section id="features" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Why Choose Nefu?</h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto">Simple, secure, and efficient — get the best desktop app experience with minimal configuration</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 group">
+                    <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:bg-brand-500 group-hover:text-white transition-colors">🔒</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Encrypted Packaging</h3>
+                    <p class="text-gray-500 leading-relaxed">AES-256-GCM encryption protects your source code, and SHA256 integrity verification ensures files have not been tampered with.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 group">
+                    <div class="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:bg-amber-500 group-hover:text-white transition-colors">⚡</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Hot Reload Development</h3>
+                    <p class="text-gray-500 leading-relaxed">A built-in dev server auto-refreshes the browser when files change. What you see is what you get, doubling development efficiency.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 group">
+                    <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:bg-green-500 group-hover:text-white transition-colors">🎨</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">.nc Component Language</h3>
+                    <p class="text-gray-500 leading-relaxed">A unique JSON-based UI description language with 30+ built-in Bootstrap 5 components — drive your interface with data.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 group">
+                    <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:bg-purple-500 group-hover:text-white transition-colors">🌐</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Cross-Platform Support</h3>
+                    <p class="text-gray-500 leading-relaxed">One codebase, three platforms. Supports Windows, macOS, and Linux, covering all major desktop platforms.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 group">
+                    <div class="w-14 h-14 bg-cyan-100 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:bg-cyan-500 group-hover:text-white transition-colors">📦</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Ultra Lightweight</h3>
+                    <p class="text-gray-500 leading-relaxed">No bundled Chromium — it uses the system's native WebView. Package size is only a few MB and it launches instantly.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100 group">
+                    <div class="w-14 h-14 bg-rose-100 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:bg-rose-500 group-hover:text-white transition-colors">💖</div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Fully Open Source</h3>
+                    <p class="text-gray-500 leading-relaxed">Open source under the MIT license, free to use and modify. Active community support with continuous updates.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Quick Start Section -->
+    <!-- ============================================================ -->
+    <section id="quickstart" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Three Steps to Get Started</h2>
+                <p class="text-lg text-gray-500">From creation to release, build your first desktop app in as little as 3 minutes</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="relative">
+                    <div class="absolute -top-4 -left-4 w-12 h-12 bg-brand-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg shadow-brand-500/30">1</div>
+                    <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm h-full">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 mt-2">Create Project</h3>
+                        <p class="text-gray-500 mb-6">One command initializes the project structure, auto-generating config files and template code.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <div class="code-dot bg-red-400"></div>
+                                <div class="code-dot bg-yellow-400"></div>
+                                <div class="code-dot bg-green-400"></div>
+                            </div>
+                            <div class="code-content text-sm">
+$ nefu init my-app<br>
+<span class="code-comment"># Generates main.nefu + index.html</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative">
+                    <div class="absolute -top-4 -left-4 w-12 h-12 bg-brand-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg shadow-brand-500/30">2</div>
+                    <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm h-full">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 mt-2">Develop & Debug</h3>
+                        <p class="text-gray-500 mb-6">Start the dev server for real-time preview. Files refresh automatically on change.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <div class="code-dot bg-red-400"></div>
+                                <div class="code-dot bg-yellow-400"></div>
+                                <div class="code-dot bg-green-400"></div>
+                            </div>
+                            <div class="code-content text-sm">
+$ cd my-app<br>
+$ nefu start<br>
+<span class="code-comment"># Browser opens :3900 automatically</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative">
+                    <div class="absolute -top-4 -left-4 w-12 h-12 bg-brand-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg shadow-brand-500/30">3</div>
+                    <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm h-full">
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 mt-2">Build & Publish</h3>
+                        <p class="text-gray-500 mb-6">One-click packaging into a standalone executable, ready to distribute to users.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <div class="code-dot bg-red-400"></div>
+                                <div class="code-dot bg-yellow-400"></div>
+                                <div class="code-dot bg-green-400"></div>
+                            </div>
+                            <div class="code-content text-sm">
+$ nefu build<br>
+<span class="code-comment"># ✅ dist/my-app.exe (8.2 MB)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- .nc Component Showcase -->
+    <!-- ============================================================ -->
+    <section id="nc-demo" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <div class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">Unique Feature</div>
+                <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">.nc Component Language</h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto">Describe your UI with JSON, and Nefu automatically compiles it into beautiful Bootstrap 5 pages</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 items-start">
+                <!-- Code Side -->
+                <div>
+                    <div class="code-block shadow-xl">
+                        <div class="code-header">
+                            <div class="code-dot bg-red-400"></div>
+                            <div class="code-dot bg-yellow-400"></div>
+                            <div class="code-dot bg-green-400"></div>
+                            <span class="ml-3 text-xs text-gray-400">index.nc</span>
+                        </div>
+                        <div class="code-content text-sm leading-relaxed">
+{<br>
+&nbsp;&nbsp;<span class="code-string">"component"</span>: <span class="code-string">"page"</span>,<br>
+&nbsp;&nbsp;<span class="code-string">"title"</span>: <span class="code-string">"My App"</span>,<br>
+&nbsp;&nbsp;<span class="code-string">"children"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"component"</span>: <span class="code-string">"container"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"children"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"component"</span>: <span class="code-string">"alert"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"type"</span>: <span class="code-string">"success"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"text"</span>: <span class="code-string">"Welcome!"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"component"</span>: <span class="code-string">"card"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"title"</span>: <span class="code-string">"User Info"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"children"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"component"</span>: <span class="code-string">"input"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"label"</span>: <span class="code-string">"Name"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"placeholder"</span>: <span class="code-string">"Please enter..."</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"component"</span>: <span class="code-string">"button"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"text"</span>: <span class="code-string">"Submit"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"color"</span>: <span class="code-string">"primary"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"onClick"</span>: <span class="code-string">"lj('submit')"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;]<br>
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Side -->
+                <div>
+                    <div class="nc-preview shadow-xl">
+                        <div class="nc-preview-header">
+                            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                            <span>Live Preview</span>
+                        </div>
+                        <div class="nc-preview-body">
+                            <!-- Simulated Bootstrap preview -->
+                            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+                                ✅ Welcome!
+                            </div>
+                            <div class="border rounded-lg p-5">
+                                <h5 class="font-semibold text-gray-900 mb-4">User Info</h5>
+                                <div class="mb-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                    <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none" placeholder="Please enter...">
+                                </div>
+                                <button class="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Component count badge -->
+                    <div class="mt-8 grid grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-white rounded-xl border border-gray-100">
+                            <div class="text-3xl font-bold text-brand-500">30+</div>
+                            <div class="text-sm text-gray-500 mt-1">Built-in Components</div>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-xl border border-gray-100">
+                            <div class="text-3xl font-bold text-brand-500">JSON</div>
+                            <div class="text-sm text-gray-500 mt-1">Data Format</div>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-xl border border-gray-100">
+                            <div class="text-3xl font-bold text-brand-500">BS5</div>
+                            <div class="text-sm text-gray-500 mt-1">Bootstrap</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Download Section -->
+    <!-- ============================================================ -->
+    <section id="download" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Download Now</h2>
+                <p class="text-lg text-gray-500">Choose your platform and start building desktop apps</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <!-- Windows -->
+                <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all text-center group">
+                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4h-13.05m-10.95 11.553l9.75 1.35V12.549H0m10.949 11.653L24 24V12.549h-13.05"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Windows</h3>
+                    <p class="text-gray-500 text-sm mb-6">Windows 10/11 x64</p>
+                    <a href="#" class="inline-block w-full bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                        Download .exe
+                    </a>
+                    <p class="text-xs text-gray-400 mt-3">v1.0.0 · 12.3 MB</p>
+                </div>
+
+                <!-- macOS -->
+                <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all text-center group">
+                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8 text-gray-700" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99 1.01-3.15-1.02.05-2.29.68-3.02 1.53-.65.75-1.22 1.95-1.07 3.09 1.14.09 2.31-.59 3.08-1.47z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">macOS</h3>
+                    <p class="text-gray-500 text-sm mb-6">macOS 12+ (Intel & Apple Silicon)</p>
+                    <a href="#" class="inline-block w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-xl font-semibold transition-colors">
+                        Download .dmg
+                    </a>
+                    <p class="text-xs text-gray-400 mt-3">v1.0.0 · 15.1 MB</p>
+                </div>
+
+                <!-- Linux -->
+                <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all text-center group">
+                    <div class="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.04 1.24.035 1.792.192.478.134.907.352 1.365.502.355.115.684.2 1.015.2.478 0 .906-.142 1.276-.402.478-.334.783-.835.97-1.304.186-.469.265-.971.265-1.435 0-.267-.02-.535-.06-.768a3.945 3.945 0 00-.132-.469c.17-.535.196-1.107.076-1.638-.12-.531-.36-1.032-.67-1.47-.31-.437-.673-.835-1.032-1.178-.36-.344-.71-.64-1.002-.907-.58-.578-1.002-1.098-1.235-1.602-.233-.504-.32-1.004-.32-1.54 0-.568.09-1.17.32-1.74.23-.57.58-1.07 1.01-1.47.43-.4 1.01-.67 1.67-.74.66-.07 1.34.07 1.97.34.63.27 1.17.67 1.58 1.14.41.47.67 1.01.74 1.55.07.54-.03 1.08-.27 1.55-.24.47-.6.84-1.04 1.07-.44.23-.94.34-1.44.27-.5-.07-.94-.3-1.27-.63-.33-.33-.53-.77-.53-1.24 0-.47.17-.9.47-1.24.3-.34.7-.53 1.17-.53.47 0 .87.17 1.17.47.3.3.47.7.47 1.14 0 .23-.04.47-.13.67-.09.2-.23.37-.4.5-.17.13-.37.2-.6.2-.23 0-.43-.07-.6-.2-.17-.13-.27-.3-.33-.5-.07-.2-.07-.4 0-.6.07-.2.2-.37.37-.47.17-.1.37-.17.57-.17.2 0 .4.07.57.17.17.1.3.27.4.47.1.2.13.4.13.6 0 .47-.17.9-.47 1.24-.3.34-.7.53-1.17.53-.47 0-.87-.17-1.17-.47-.3-.3-.47-.7-.47-1.14 0-.23.04-.47.13-.67.09-.2.23-.37.4-.5.17-.13.37-.2.6-.2.23 0 .43.07.6.2.17.13.27.3.33.5.07.2.07.4 0 .6-.07.2-.2.37-.37.47-.17.1-.37.17-.57.17z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Linux</h3>
+                    <p class="text-gray-500 text-sm mb-6">Ubuntu 20.04+ / Fedora 35+</p>
+                    <a href="#" class="inline-block w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition-colors">
+                        Download AppImage
+                    </a>
+                    <p class="text-xs text-gray-400 mt-3">v1.0.0 · 18.7 MB</p>
+                </div>
+            </div>
+
+            <!-- Source code link -->
+            <div class="text-center mt-12">
+                <p class="text-gray-500">
+                    Or build directly from source:
+                    <a href="https://github.com/nefu/nefu" class="text-brand-500 hover:text-brand-600 font-medium ml-1">GitHub Repository →</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- Footer -->
+    <!-- ============================================================ -->
+    <footer class="bg-gray-900 text-gray-300 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-12">
+                <!-- Brand -->
+                <div class="col-span-1 md:col-span-1">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">N</div>
+                        <span class="text-xl font-bold text-white">Nefu</span>
+                    </div>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Turn web pages into desktop apps.<br>
+                        Simple, secure, efficient.
+                    </p>
+                </div>
+
+                <!-- Product -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#nc-demo" class="hover:text-white transition-colors">.nc Component Language</a></li>
+                        <li><a href="#download" class="hover:text-white transition-colors">Download</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Changelog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Resources -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Resources</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="../docs/manual.md" class="hover:text-white transition-colors">User Manual</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API Docs</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Sample Projects</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Community Forum</a></li>
+                    </ul>
+                </div>
+
+                <!-- Links -->
+                <div>
+                    <h4 class="text-white font-semibold mb-4">Links</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="https://github.com/nefu/nefu" class="hover:text-white transition-colors">GitHub</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Feedback</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contribution Guide</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">MIT License</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-gray-500">© 2024 Nefu Project. Open source under the MIT license.</p>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors text-sm">Privacy Policy</a>
+                    <a href="#" class="text-gray-500 hover:text-white transition-colors text-sm">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================ -->
+    <!-- Scripts -->
+    <!-- ============================================================ -->
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                navbar.classList.add('shadow-md');
+            } else {
+                navbar.classList.remove('shadow-md');
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Close the mobile menu
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+
+        // Simple scroll animation observer
+        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('#features .group, #quickstart .relative, #download .group').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

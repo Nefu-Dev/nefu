@@ -1,0 +1,22 @@
+entry = "index.html"
+output = "electron-api-demo"
+description = "Nefu Electron API full demo"
+version = "1.0.0"
+author = "Nefu"
+debug = false
+window_width = 1280
+window_height = 900
+resizable = true
+decorations = true
+context_menu = true
+drag_drop = false
+single_instance = true
+persist_window_state = true
+
+[scripts]
+build = "npm run build"
+deploy = "deploy.bat --production"
+test = "echo Running tests..."
+
+[env]
+DEMO_MODE = "true"

@@ -1,0 +1,36 @@
+# Rust build output
+/target/
+**/target/
+
+# Nefu build output
+**/dist/
+**/.nefu_cache/
+
+# Cargo/crate artifacts inside examples
+**/build/
+**/deps/
+**/incremental/
+**/.fingerprint/
+**/examples/**/build/
+**/examples/**/deps/
+**/examples/**/incremental/
+**/examples/**/.fingerprint/
+
+# Android build (generated project)
+examples/basic/android/
+
+# WebView2 cache
+**/nefu.exe.WebView2/
+**/nefu.d
+
+# Binaries
+*.exe
+*.bin
+*.apk
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nefu Electron API Full Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --nefu-bg: #1a1b2e;
+            --nefu-sidebar: #141524;
+            --nefu-card: #1e2038;
+            --nefu-card-hover: #252948;
+            --nefu-border: #2a2d4a;
+            --nefu-text: #e0e0f0;
+            --nefu-text-muted: #8888aa;
+            --nefu-accent: #6c5ce7;
+            --nefu-accent-hover: #7c6cf7;
+            --nefu-success: #00b894;
+            --nefu-warning: #fdcb6e;
+            --nefu-error: #e17055;
+            --nefu-output-bg: #0f0f1e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--nefu-bg);
+            color: var(--nefu-text);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--nefu-sidebar);
+            border-right: 1px solid var(--nefu-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+            padding: 0;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--nefu-border); border-radius: 2px; }
+        .sidebar-header {
+            padding: 20px 16px 12px;
+            border-bottom: 1px solid var(--nefu-border);
+            text-align: center;
+        }
+        .sidebar-header h5 {
+            color: #fff;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .sidebar-header small {
+            color: var(--nefu-text-muted);
+            font-size: 0.75rem;
+        }
+        .sidebar .nav-section {
+            list-style: none;
+            padding: 8px 0;
+            margin: 0;
+        }
+        .sidebar .nav-section li {
+            padding: 0;
+        }
+        .sidebar .nav-section a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px 8px 20px;
+            color: var(--nefu-text-muted);
+            text-decoration: none;
+            font-size: 0.82rem;
+            border-left: 3px solid transparent;
+            transition: all 0.15s;
+            cursor: pointer;
+            gap: 8px;
+        }
+        .sidebar .nav-section a:hover {
+            color: var(--nefu-text);
+            background: rgba(108, 92, 231, 0.08);
+        }
+        .sidebar .nav-section a.active {
+            color: #fff;
+            background: rgba(108, 92, 231, 0.15);
+            border-left-color: var(--nefu-accent);
+        }
+        .sidebar .nav-section a .badge-count {
+            margin-left: auto;
+            background: var(--nefu-accent);
+            color: #fff;
+            border-radius: 8px;
+            padding: 0 6px;
+            font-size: 0.65rem;
+            line-height: 16px;
+        }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+        /* Main */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 24px 28px 80px;
+            max-width: calc(100% - 260px);
+        }
+        .page-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--nefu-border);
+        }
+        .page-header h2 { font-weight: 700; font-size: 1.5rem; margin: 0; }
+        .page-header p { color: var(--nefu-text-muted); margin: 4px 0 0; font-size: 0.85rem; }
+        /* Module Card */
+        .module-card {
+            background: var(--nefu-card);
+            border: 1px solid var(--nefu-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+        .module-card:hover { border-color: rgba(108, 92, 231, 0.3); }
+        .module-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .module-title .title-icon {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.9rem;
+            background: rgba(108, 92, 231, 0.15);
+        }
+        .btn-nefu {
+            background: var(--nefu-accent);
+            border: none;
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn-nefu:hover { background: var(--nefu-accent-hover); color: #fff; transform: translateY(-1px); }
+        .btn-nefu-sm { padding: 3px 10px; font-size: 0.72rem; }
+        .btn-outline-nefu {
+            background: transparent;
+            border: 1px solid var(--nefu-accent);
+            color: var(--nefu-accent);
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .btn-outline-nefu:hover { background: var(--nefu-accent); color: #fff; }
+        .btn-outline-nefu-sm { padding: 3px 10px; font-size: 0.72rem; }
+        .btn-group-nefu {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .output-area {
+            background: var(--nefu-output-bg);
+            border: 1px solid var(--nefu-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            max-height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #a8b0d0;
+            margin-top: 8px;
+        }
+        .output-area::-webkit-scrollbar { width: 4px; }
+        .output-area::-webkit-scrollbar-thumb { background: var(--nefu-border); border-radius: 2px; }
+        .output-line { margin: 0; }
+        .output-line .time { color: #555577; }
+        .output-line .ok { color: var(--nefu-success); }
+        .output-line .err { color: var(--nefu-error); }
+        .output-line .info { color: #74b9ff; }
+        .output-line .warn { color: var(--nefu-warning); }
+        .output-line .json { color: #a8b0d0; }
+        .output-line .json .key { color: #81ecec; }
+        .output-line .json .str { color: #55efc4; }
+        .output-line .json .num { color: #fdcb6e; }
+        .output-line .json .bool { color: #e17055; }
+        .output-line .json .null { color: #636e72; }
+        /* Not-in-nefu banner */
+        .not-nefu-banner {
+            display: none;
+            background: rgba(225, 112, 85, 0.12);
+            border: 1px solid var(--nefu-error);
+            color: var(--nefu-error);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+        .not-nefu-banner.show { display: flex; align-items: center; gap: 10px; }
+        .nefu-ready-banner {
+            display: none;
+            background: rgba(0, 184, 148, 0.12);
+            border: 1px solid var(--nefu-success);
+            color: var(--nefu-success);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+        .nefu-ready-banner.show { display: flex; align-items: center; gap: 10px; }
+        /* Section visibility */
+        .section { display: none; }
+        .section.active { display: block; }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 200px; }
+            .main-content { margin-left: 200px; max-width: calc(100% - 200px); padding: 16px; }
+        }
+        .badge-api { font-size: 0.6rem; background: rgba(108,92,231,0.2); color: #a8a0ff; padding: 1px 6px; border-radius: 4px; }
+        /* loading */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.2s steps(3,end) infinite;
+        }
+        @keyframes dots { 0% { content: ''; } 33% { content: '.'; } 66% { content: '..'; } 100% { content: '...'; } }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h5>⚡ Nefu API</h5>
+            <small>Full Electron API Demo</small>
+        </div>
+        <ul class="nav-section" id="navList"></ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div class="page-header">
+            <h2 id="pageTitle">Nefu Bridge API Demo</h2>
+            <p id="pageDesc">All API calls run through <code>window.nefu.invoke()</code>, with results shown in real time</p>
+        </div>
+
+        <div class="not-nefu-banner" id="notNefuBanner">
+            ⚠️ <strong>Nefu runtime environment not detected</strong> — this page was opened in a regular browser, so all API calls will fail.
+            Run this page inside a Nefu app.
+        </div>
+        <div class="nefu-ready-banner" id="nefuReadyBanner">
+            ✅ <strong>Nefu runtime ready</strong> — all bridge APIs are available.
+        </div>
+
+        <div id="sectionsContainer"></div>
+    </main>
+</div>
+
+<script>
+// ============================================================
+// Module definitions
+// ============================================================
+const MODULES = [
+    {
+        id: 'basic', icon: '🏠', title: 'Basic Info', desc: 'getVersion, getPlatform, getTime, echo',
+        methods: [
+            { name: 'getVersion', label: 'getVersion', desc: 'Get the version number' },
+            { name: 'getPlatform', label: 'getPlatform', desc: 'Get platform info' },
+            { name: 'getTime', label: 'getTime', desc: 'Get a timestamp' },
+            { name: 'echo', label: 'echo("hello")', desc: 'Echo data', args: ['hello'] },
+        ]
+    },
+    {
+        id: 'window', icon: '🪟', title: 'Window Control', desc: 'minimize, maximize, close, isMaximized, setTitle, etc.',
+        methods: [
+            { name: 'window.minimize', label: 'minimize', desc: 'Minimize the window' },
+            { name: 'window.maximize', label: 'maximize', desc: 'Maximize the window' },
+            { name: 'window.restore', label: 'restore', desc: 'Restore the window' },
+            { name: 'window.close', label: 'close', desc: 'Close the window' },
+            { name: 'window.isMaximized', label: 'isMaximized', desc: 'Whether maximized' },
+            { name: 'window.isMinimized', label: 'isMinimized', desc: 'Whether minimized' },
+            { name: 'window.isVisible', label: 'isVisible', desc: 'Whether the window is visible' },
+            { name: 'window.center', label: 'center', desc: 'Center the window' },
+            { name: 'window.focus', label: 'focus', desc: 'Focus the window' },
+            { name: 'window.blur', label: 'blur', desc: 'Blur the window' },
+            { name: 'window.setAlwaysOnTop', label: 'setAlwaysOnTop(true)', desc: 'Keep the window on top', args: [true] },
+            { name: 'window.show', label: 'show', desc: 'Show the window' },
+            { name: 'window.hide', label: 'hide', desc: 'Hide the window' },
+            { name: 'window.setTitle', label: 'setTitle("Nefu")', desc: 'Set the title', args: ['Nefu'] },
+            { name: 'window.getTitle', label: 'getTitle', desc: 'Get the title' },
+            { name: 'window.setResizable', label: 'setResizable(true)', desc: 'Set resizable', args: [true] },
+            { name: 'window.isResizable', label: 'isResizable', desc: 'Whether resizable' },
+            { name: 'window.setOpacity', label: 'setOpacity(0.9)', desc: 'Set opacity', args: [0.9] },
+            { name: 'window.getOpacity', label: 'getOpacity', desc: 'Get opacity' },
+            { name: 'window.setFullScreen', label: 'setFullScreen(false)', desc: 'Set fullscreen', args: [false] },
+            { name: 'window.isFullScreen', label: 'isFullScreen', desc: 'Whether fullscreen' },
+            { name: 'window.getBounds', label: 'getBounds', desc: 'Get the window bounds' },
+            { name: 'window.getSize', label: 'getSize', desc: 'Get the window size' },
+            { name: 'window.getPosition', label: 'getPosition', desc: 'Get the window position' },
+            { name: 'window.getMinimumSize', label: 'getMinimumSize', desc: 'Get the minimum size' },
+            { name: 'window.getMaximumSize', label: 'getMaximumSize', desc: 'Get the maximum size' },
+            { name: 'window.setMinimumSize', label: 'setMinimumSize(400,300)', desc: 'Set the minimum size', args: [400, 300] },
+            { name: 'window.setMaximumSize', label: 'setMaximumSize(0,0)', desc: 'Set the maximum size', args: [0, 0] },
+            { name: 'window.setPosition', label: 'setPosition(100,100)', desc: 'Set the position', args: [100, 100] },
+        ]
+    },
+    {
+        id: 'clipboard', icon: '📋', title: 'Clipboard', desc: 'read, write, readImage, hasImage, readHTML, writeHTML, clear, availableFormats',
+        methods: [
+            { name: 'clipboard.write', label: 'write("Hello Nefu")', desc: 'Write text', args: ['Hello Nefu'] },
+            { name: 'clipboard.read', label: 'read', desc: 'Read text' },
+            { name: 'clipboard.readImage', label: 'readImage', desc: 'Read an image (base64)' },
+            { name: 'clipboard.hasImage', label: 'hasImage', desc: 'Whether an image is present' },
+            { name: 'clipboard.readHTML', label: 'readHTML', desc: 'Read HTML' },
+            { name: 'clipboard.writeHTML', label: 'writeHTML("<b>bold</b>")', desc: 'Write HTML', args: ['<b>bold</b>'] },
+            { name: 'clipboard.clear', label: 'clear', desc: 'Clear the clipboard' },
+            { name: 'clipboard.availableFormats', label: 'availableFormats', desc: 'Available formats' },
+        ]
+    },
+    {
+        id: 'fs', icon: '📁', title: 'File System', desc: 'readFile, writeFile, exists',
+        methods: [
+            { name: 'fs.writeFile', label: 'writeFile("test.txt","hi")', desc: 'Write a file', args: ['test.txt', 'Hello Nefu!'] },
+            { name: 'fs.readFile', label: 'readFile("test.txt")', desc: 'Read a file', args: ['test.txt'] },
+            { name: 'fs.exists', label: 'exists("test.txt")', desc: 'Whether the file exists', args: ['test.txt'] },
+        ]
+    },
+    {
+        id: 'dialog', icon: '💬', title: 'Dialogs', desc: 'alert, confirm, openFile, saveFile, showMessageBox, showErrorBox',
+        methods: [
+            { name: 'dialog.alert', label: 'alert("Hello!")', desc: 'Alert box', args: ['Hello from Nefu!'] },
+            { name: 'dialog.confirm', label: 'confirm("Continue?")', desc: 'Confirmation box', args: ['Are you sure?'] },
+            { name: 'dialog.openFile', label: 'openFile()', desc: 'Open the file picker', args: [{}] },
+            { name: 'dialog.saveFile', label: 'saveFile()', desc: 'Save file dialog', args: [{}] },
+            { name: 'dialog.showMessageBox', label: 'showMessageBox', desc: 'Show a message box', args: [{title:'Nefu',message:'Hello'}] },
+            { name: 'dialog.showErrorBox', label: 'showErrorBox("Error","Oops")', desc: 'Show an error box', args: ['Error', 'Something went wrong'] },
+        ]
+    },
+    {
+        id: 'shell', icon: '🖥️', title: 'Shell', desc: 'openExternal, openPath, showItemInFolder, beep, exec, etc.',
+        methods: [
+            { name: 'shell.openExternal', label: 'openExternal(url)', desc: 'Open a URL', args: ['https://nefu.app'] },
+            { name: 'shell.openPath', label: 'openPath(".")', desc: 'Open a path', args: ['.'] },
+            { name: 'shell.showItemInFolder', label: 'showItemInFolder', desc: 'Reveal in the folder', args: ['.'] },
+            { name: 'shell.beep', label: 'beep', desc: 'System beep' },
+            { name: 'shell.trashItem', label: 'trashItem("test.txt")', desc: 'Move to trash', args: ['test.txt'] },
+            { name: 'shell.getSystemVersion', label: 'getSystemVersion', desc: 'System version' },
+            { name: 'shell.exec', label: 'exec("echo hello")', desc: 'Run a command', args: ['cmd', '/c', 'echo hello'] },
+            { name: 'shell.writeShortcutLink', label: 'writeShortcutLink', desc: 'Create a shortcut', args: ['test.lnk', 'link', {target:'notepad.exe'}] },
+            { name: 'shell.readShortcutLink', label: 'readShortcutLink', desc: 'Read a shortcut', args: ['test.lnk'] },
+            { name: 'shell.moveItemToTrash', label: 'moveItemToTrash', desc: 'Move to trash (alias)', args: ['test.txt'] },
+        ]
+    },
+    {
+        id: 'notification', icon: '🔔', title: 'Notifications', desc: 'send, isSupported, show',
+        methods: [
+            { name: 'notification.isSupported', label: 'isSupported', desc: 'Whether notifications are supported' },
+            { name: 'notification.send', label: 'send("Hello")', desc: 'Send a notification', args: [{title:'Nefu',body:'Hello from Nefu!'}] },
+            { name: 'notification.show', label: 'show("Title","Body")', desc: 'Show a notification', args: ['Nefu', 'Notification body'] },
+        ]
+    },
+    {
+        id: 'system', icon: '📊', title: 'System Info', desc: 'getTheme, getMemoryInfo, getCpuInfo, getGpuInfo, getPowerState, etc.',
+        methods: [
+            { name: 'system.getTheme', label: 'getTheme', desc: 'Get the system theme' },
+            { name: 'system.getMemoryInfo', label: 'getMemoryInfo', desc: 'Get memory info' },
+            { name: 'system.getCpuInfo', label: 'getCpuInfo', desc: 'Get CPU info' },
+            { name: 'system.getGpuInfo', label: 'getGpuInfo', desc: 'Get GPU info' },
+            { name: 'system.getPowerState', label: 'getPowerState', desc: 'Get the power state' },
+            { name: 'system.getScreenInfo', label: 'getScreenInfo', desc: 'Get screen info' },
+            { name: 'system.getSummary', label: 'getSummary', desc: 'Get a system summary' },
+            { name: 'system.refresh', label: 'refresh', desc: 'Refresh the system info cache' },
+        ]
+    },
+    {
+        id: 'storage', icon: '💾', title: 'Storage', desc: 'get, set, remove',
+        methods: [
+            { name: 'storage.set', label: 'set("key","value")', desc: 'Write storage', args: ['key', 'Hello Nefu'] },
+            { name: 'storage.get', label: 'get("key")', desc: 'Read storage', args: ['key'] },
+            { name: 'storage.remove', label: 'remove("key")', desc: 'Remove storage', args: ['key'] },
+        ]
+    },
+    {
+        id: 'app', icon: '📦', title: 'App Module', desc: 'getPath, getName, getVersion, getLocale, quit, etc.',
+        methods: [
+            { name: 'app.getPath', label: 'getPath("home")', desc: 'Get a system path', args: ['home'] },
+            { name: 'app.getAppPath', label: 'getAppPath', desc: 'Get the app path' },
+            { name: 'app.getName', label: 'getName', desc: 'Get the app name' },
+            { name: 'app.getVersion', label: 'getVersion', desc: 'Get the app version' },
+            { name: 'app.getLocale', label: 'getLocale', desc: 'Get the locale' },
+            { name: 'app.getLocaleCountryCode', label: 'getLocaleCountryCode', desc: 'Get the country code' },
+            { name: 'app.isPackaged', label: 'isPackaged', desc: 'Whether packaged' },
+            { name: 'app.getAppMetrics', label: 'getAppMetrics', desc: 'Get process metrics' },
+            { name: 'app.getLoginItemSettings', label: 'getLoginItemSettings', desc: 'Get login item settings' },
+            { name: 'app.setLoginItemSettings', label: 'setLoginItemSettings', desc: 'Set login at startup', args: [{openAtLogin:true}] },
+            { name: 'app.getSystemVersion', label: 'getSystemVersion', desc: 'Get the system version' },
+            { name: 'app.getAppInfo', label: 'getAppInfo', desc: 'Get full app info' },
+            { name: 'app.getSystemProxySettings', label: 'getSystemProxySettings', desc: 'Get the system proxy' },
+            { name: 'app.getSystemVersionInfo', label: 'getSystemVersionInfo', desc: 'Get system version info' },
+            { name: 'app.getGPUInfo', label: 'getGPUInfo', desc: 'Get GPU info' },
+            { name: 'app.setAboutPanelOptions', label: 'setAboutPanelOptions', desc: 'Set the about panel', args: [{applicationName:'Nefu'}] },
+            { name: 'app.setAsDefaultProtocolClient', label: 'setAsDefaultProtocolClient', desc: 'Set the default protocol', args: ['nefu'] },
+            { name: 'app.removeAsDefaultProtocolClient', label: 'removeAsDefaultProtocolClient', desc: 'Remove the protocol', args: ['nefu'] },
+            { name: 'app.isDefaultProtocolClient', label: 'isDefaultProtocolClient', desc: 'Check the protocol', args: ['nefu'] },
+            { name: 'app.getApplicationNameForProtocol', label: 'getApplicationNameForProtocol', desc: 'Get the protocol app', args: ['https://'] },
+            { name: 'app.requestSingleInstanceLock', label: 'requestSingleInstanceLock', desc: 'Request the single-instance lock' },
+            { name: 'app.releaseSingleInstanceLock', label: 'releaseSingleInstanceLock', desc: 'Release the single-instance lock' },
+            { name: 'app.getUserAgentFallback', label: 'getUserAgentFallback', desc: 'Get the User-Agent' },
+            { name: 'app.setAppUserModelId', label: 'setAppUserModelId', desc: 'Set AppUserModelId', args: ['NefuApp'] },
+            { name: 'app.getJumpListSettings', label: 'getJumpListSettings', desc: 'Get jump list settings' },
+            { name: 'app.setJumpList', label: 'setJumpList', desc: 'Set the jump list', args: [[]] },
+            { name: 'app.focus', label: 'focus', desc: 'Focus the app' },
+            { name: 'app.hide', label: 'hide', desc: 'Hide the app' },
+            { name: 'app.show', label: 'show', desc: 'Show the app' },
+            { name: 'app.quit', label: 'quit', desc: 'Quit the app', danger: true },
+            { name: 'app.exit', label: 'exit', desc: 'Force quit', danger: true },
+            { name: 'app.relaunch', label: 'relaunch', desc: 'Relaunch the app', danger: true },
+        ]
+    },
+    {
+        id: 'powerMonitor', icon: '🔋', title: 'PowerMonitor', desc: 'getSystemIdleState, getSystemIdleTime, onBattery, etc.',
+        methods: [
+            { name: 'powerMonitor.getSystemIdleState', label: 'getSystemIdleState', desc: 'Get the idle state' },
+            { name: 'powerMonitor.getSystemIdleTime', label: 'getSystemIdleTime', desc: 'Get the idle time' },
+            { name: 'powerMonitor.getCurrentThermalState', label: 'getCurrentThermalState', desc: 'Get the thermal state' },
+            { name: 'powerMonitor.onBattery', label: 'onBattery', desc: 'Whether on battery' },
+            { name: 'powerMonitor.getCurrentDesktop', label: 'getCurrentDesktop', desc: 'Get the current desktop' },
+            { name: 'powerMonitor.getBatteryLevel', label: 'getBatteryLevel', desc: 'Get the battery level' },
+            { name: 'powerMonitor.isOnBatteryPower', label: 'isOnBatteryPower', desc: 'Whether on battery power' },
+        ]
+    },
+    {
+        id: 'powerSaveBlocker', icon: '🌙', title: 'PowerSaveBlocker', desc: 'start, stop, isStopped',
+        methods: [
+            { name: 'powerSaveBlocker.start', label: 'start("prevent-sleep")', desc: 'Prevent sleep', args: ['prevent-sleep'] },
+            { name: 'powerSaveBlocker.stop', label: 'stop(id)', desc: 'Stop blocking', args: [0] },
+            { name: 'powerSaveBlocker.isStopped', label: 'isStopped(id)', desc: 'Whether stopped', args: [0] },
+        ]
+    },
+    {
+        id: 'screen', icon: '🖥️', title: 'Screen', desc: 'getAllDisplays, getPrimaryDisplay, getCursorScreenPoint, etc.',
+        methods: [
+            { name: 'screen.getAllDisplays', label: 'getAllDisplays', desc: 'Get all displays' },
+            { name: 'screen.getPrimaryDisplay', label: 'getPrimaryDisplay', desc: 'Get the primary display' },
+            { name: 'screen.getCursorScreenPoint', label: 'getCursorScreenPoint', desc: 'Get the cursor position' },
+            { name: 'screen.getDisplayMatching', label: 'getDisplayMatching', desc: 'Get the matching display', args: [{x:0,y:0}] },
+            { name: 'screen.getNearestDisplay', label: 'getNearestDisplay', desc: 'Get the nearest display', args: [{x:0,y:0}] },
+            { name: 'screen.dipToScreenPixels', label: 'dipToScreenPixels(100)', desc: 'DIP to pixels', args: [100] },
+            { name: 'screen.screenToDipPixels', label: 'screenToDipPixels(200)', desc: 'Pixels to DIP', args: [200] },
+        ]
+    },
+    {
+        id: 'nativeImage', icon: '🖼️', title: 'NativeImage', desc: 'createFromPath, createFromBuffer, createEmpty, resize',
+        methods: [
+            { name: 'nativeImage.createEmpty', label: 'createEmpty(64,64)', desc: 'Create an empty image', args: [64, 64] },
+            { name: 'nativeImage.createFromPath', label: 'createFromPath', desc: 'Create from a path', args: ['test.png'] },
+            { name: 'nativeImage.createFromBuffer', label: 'createFromBuffer', desc: 'Create from a buffer', args: [] },
+            { name: 'nativeImage.resize', label: 'resize', desc: 'Resize the image', args: [] },
+        ]
+    },
+    {
+        id: 'menu', icon: '📋', title: 'Menu', desc: 'setApplicationMenu, buildFromTemplate, popup, getApplicationMenu, etc.',
+        methods: [
+            { name: 'menu.getDefaultTemplate', label: 'getDefaultTemplate', desc: 'Get the default template', args: ['NefuApp'] },
+            { name: 'menu.setApplicationMenu', label: 'setApplicationMenu', desc: 'Set the application menu', args: [{label:'File',submenu:[{label:'Exit'}]}] },
+            { name: 'menu.buildFromTemplate', label: 'buildFromTemplate', desc: 'Build from a template', args: [{label:'Edit',submenu:[{label:'Copy'}]}] },
+            { name: 'menu.popup', label: 'popup', desc: 'Popup the menu', args: [{label:'Context',submenu:[{label:'Action'}]}] },
+            { name: 'menu.getApplicationMenu', label: 'getApplicationMenu', desc: 'Get the current menu' },
+        ]
+    },
+    {
+        id: 'globalShortcut', icon: '⌨️', title: 'GlobalShortcut', desc: 'register, unregister, unregisterAll, isRegistered, getRegistered',
+        methods: [
+            { name: 'globalShortcut.register', label: 'register("Ctrl+Shift+A")', desc: 'Register a shortcut', args: ['Ctrl+Shift+A'] },
+            { name: 'globalShortcut.isRegistered', label: 'isRegistered("Ctrl+Shift+A")', desc: 'Check the shortcut', args: ['Ctrl+Shift+A'] },
+            { name: 'globalShortcut.getRegistered', label: 'getRegistered', desc: 'Get the registered list' },
+            { name: 'globalShortcut.unregister', label: 'unregister("Ctrl+Shift+A")', desc: 'Unregister the shortcut', args: ['Ctrl+Shift+A'] },
+            { name: 'globalShortcut.unregisterAll', label: 'unregisterAll', desc: 'Unregister all' },
+        ]
+    },
+    {
+        id: 'webContents', icon: '🌐', title: 'WebContents', desc: 'getURL, getTitle, isLoading, canGoBack, canGoForward, etc.',
+        methods: [
+            { name: 'webContents.getURL', label: 'getURL', desc: 'Get the current URL' },
+            { name: 'webContents.getTitle', label: 'getTitle', desc: 'Get the page title' },
+            { name: 'webContents.isLoading', label: 'isLoading', desc: 'Whether loading' },
+            { name: 'webContents.canGoBack', label: 'canGoBack', desc: 'Whether it can go back' },
+            { name: 'webContents.canGoForward', label: 'canGoForward', desc: 'Whether it can go forward' },
+            { name: 'webContents.getNavigationHistory', label: 'getNavigationHistory', desc: 'Get the navigation history' },
+            { name: 'webContents.getWebContentsInfo', label: 'getWebContentsInfo', desc: 'Get page status info' },
+        ]
+    },
+    {
+        id: 'webContentsExt', icon: '⚡', title: 'WebContents Extensions', desc: 'executeJavaScript, insertCSS, reload, goBack, goForward, DevTools, etc.',
+        methods: [
+            { name: 'webContents.executeJavaScript', label: 'executeJS', desc: 'Execute JS', args: ['document.title'] },
+            { name: 'webContents.insertCSS', label: 'insertCSS', desc: 'Inject CSS', args: ['body{background:#000}'] },
+            { name: 'webContents.reload', label: 'reload', desc: 'Reload the page' },
+            { name: 'webContents.reloadIgnoringCache', label: 'reloadIgnoringCache', desc: 'Reload ignoring the cache' },
+            { name: 'webContents.goBack', label: 'goBack', desc: 'Go back' },
+            { name: 'webContents.goForward', label: 'goForward', desc: 'Go forward' },
+            { name: 'webContents.print', label: 'print', desc: 'Print' },
+            { name: 'webContents.printToPDF', label: 'printToPDF', desc: 'Print to PDF' },
+            { name: 'webContents.downloadURL', label: 'downloadURL', desc: 'Download a URL', args: ['https://nefu.app'] },
+            { name: 'webContents.setZoomFactor', label: 'setZoomFactor(1.5)', desc: 'Set the zoom factor', args: [1.5] },
+            { name: 'webContents.getZoomFactor', label: 'getZoomFactor', desc: 'Get the zoom factor' },
+            { name: 'webContents.setZoomLevel', label: 'setZoomLevel(1)', desc: 'Set the zoom level', args: [1] },
+            { name: 'webContents.getZoomLevel', label: 'getZoomLevel', desc: 'Get the zoom level' },
+            { name: 'webContents.toggleDevTools', label: 'toggleDevTools', desc: 'Toggle the developer tools' },
+            { name: 'webContents.openDevTools', label: 'openDevTools', desc: 'Open the developer tools' },
+            { name: 'webContents.closeDevTools', label: 'closeDevTools', desc: 'Close the developer tools' },
+            { name: 'webContents.isDevToolsOpened', label: 'isDevToolsOpened', desc: 'Whether DevTools is open' },
+            { name: 'webContents.copy', label: 'copy', desc: 'Copy' },
+            { name: 'webContents.paste', label: 'paste', desc: 'Paste' },
+            { name: 'webContents.cut', label: 'cut', desc: 'Cut' },
+            { name: 'webContents.selectAll', label: 'selectAll', desc: 'Select all' },
+            { name: 'webContents.undo', label: 'undo', desc: 'Undo' },
+            { name: 'webContents.redo', label: 'redo', desc: 'Redo' },
+            { name: 'webContents.findInPage', label: 'findInPage("nefu")', desc: 'Find in page', args: ['nefu'] },
+            { name: 'webContents.stopFindInPage', label: 'stopFindInPage', desc: 'Stop finding' },
+        ]
+    },
+    {
+        id: 'session', icon: '🍪', title: 'Session', desc: 'cookies.get, cookies.set, cookies.remove, cookies.flush, clearCache, etc.',
+        methods: [
+            { name: 'session.cookies.get', label: 'cookies.get', desc: 'Get cookies', args: [{}] },
+            { name: 'session.cookies.set', label: 'cookies.set', desc: 'Set a cookie', args: [{url:'https://nefu.app',name:'test',value:'123'}] },
+            { name: 'session.cookies.remove', label: 'cookies.remove', desc: 'Remove a cookie', args: ['https://nefu.app', 'test'] },
+            { name: 'session.cookies.flush', label: 'cookies.flush', desc: 'Flush cookies' },
+            { name: 'session.clearCache', label: 'clearCache', desc: 'Clear the cache' },
+            { name: 'session.clearStorageData', label: 'clearStorageData', desc: 'Clear storage data' },
+            { name: 'session.setProxy', label: 'setProxy', desc: 'Set the proxy', args: [{mode:'direct'}] },
+            { name: 'session.getProxy', label: 'getProxy', desc: 'Get the proxy config' },
+            { name: 'session.isOnline', label: 'isOnline', desc: 'Check the network status' },
+        ]
+    },
+    {
+        id: 'protocol', icon: '🔗', title: 'Protocol', desc: 'registerStringProtocol, isProtocolHandled, unregisterProtocol, getRegisteredProtocols',
+        methods: [
+            { name: 'protocol.registerStringProtocol', label: 'register("nefu")', desc: 'Register a protocol', args: ['nefu'] },
+            { name: 'protocol.isProtocolHandled', label: 'isProtocolHandled("nefu")', desc: 'Check the protocol', args: ['nefu'] },
+            { name: 'protocol.unregisterProtocol', label: 'unregister("nefu")', desc: 'Unregister the protocol', args: ['nefu'] },
+            { name: 'protocol.getRegisteredProtocols', label: 'getRegisteredProtocols', desc: 'Get registered protocols' },
+        ]
+    },
+    {
+        id: 'dock', icon: '⏹️', title: 'Dock', desc: 'setBadge, getBadge, bounce, cancelBounce, show, hide, isVisible',
+        methods: [
+            { name: 'dock.setBadge', label: 'setBadge("5")', desc: 'Set the badge', args: ['5'] },
+            { name: 'dock.getBadge', label: 'getBadge', desc: 'Get the badge' },
+            { name: 'dock.bounce', label: 'bounce("informational")', desc: 'Bounce the icon', args: ['informational'] },
+            { name: 'dock.cancelBounce', label: 'cancelBounce(0)', desc: 'Cancel the bounce', args: [0] },
+            { name: 'dock.show', label: 'show', desc: 'Show the Dock icon' },
+            { name: 'dock.hide', label: 'hide', desc: 'Hide the Dock icon' },
+            { name: 'dock.isVisible', label: 'isVisible', desc: 'Whether the Dock is visible' },
+        ]
+    },
+    {
+        id: 'nativeTheme', icon: '🎨', title: 'NativeTheme', desc: 'shouldUseDarkColors, shouldUseHighContrastColors, themeSource, etc.',
+        methods: [
+            { name: 'nativeTheme.shouldUseDarkColors', label: 'shouldUseDarkColors', desc: 'Whether the dark theme is in use' },
+            { name: 'nativeTheme.shouldUseHighContrastColors', label: 'shouldUseHighContrastColors', desc: 'Whether high contrast is in use' },
+            { name: 'nativeTheme.shouldUseInvertedColorScheme', label: 'shouldUseInvertedColorScheme', desc: 'Whether colors are inverted' },
+            { name: 'nativeTheme.themeSource', label: 'themeSource', desc: 'Get the theme source' },
+            { name: 'nativeTheme.setThemeSource', label: 'setThemeSource("dark")', desc: 'Set the theme source', args: ['dark'] },
+        ]
+    },
+    {
+        id: 'contentTracing', icon: '📝', title: 'ContentTracing', desc: 'startRecording, stopRecording, getCategories, getTraceBufferUsage, isRecording',
+        methods: [
+            { name: 'contentTracing.startRecording', label: 'startRecording', desc: 'Start tracing', args: [{}] },
+            { name: 'contentTracing.isRecording', label: 'isRecording', desc: 'Whether recording' },
+            { name: 'contentTracing.getCategories', label: 'getCategories', desc: 'Get trace categories' },
+            { name: 'contentTracing.getTraceBufferUsage', label: 'getTraceBufferUsage', desc: 'Get buffer usage' },
+            { name: 'contentTracing.stopRecording', label: 'stopRecording', desc: 'Stop tracing' },
+        ]
+    },
+    {
+        id: 'webFrame', icon: '🔍', title: 'WebFrame', desc: 'setZoomLevel, getZoomLevel, setZoomFactor, getZoomFactor, findInPage, stopFindInPage',
+        methods: [
+            { name: 'webFrame.setZoomLevel', label: 'setZoomLevel(1)', desc: 'Set the zoom level', args: [1] },
+            { name: 'webFrame.getZoomLevel', label: 'getZoomLevel', desc: 'Get the zoom level' },
+            { name: 'webFrame.setZoomFactor', label: 'setZoomFactor(1.5)', desc: 'Set the zoom factor', args: [1.5] },
+            { name: 'webFrame.getZoomFactor', label: 'getZoomFactor', desc: 'Get the zoom factor' },
+            { name: 'webFrame.findInPage', label: 'findInPage("nefu")', desc: 'Find in page', args: ['nefu'] },
+            { name: 'webFrame.stopFindInPage', label: 'stopFindInPage', desc: 'Stop finding' },
+        ]
+    },
+    {
+        id: 'systemPreferences', icon: '⚙️', title: 'SystemPreferences', desc: 'isDarkMode, getColor, getAccentColor, areAnimationsEnabled, etc.',
+        methods: [
+            { name: 'systemPreferences.isDarkMode', label: 'isDarkMode', desc: 'Whether dark mode is on' },
+            { name: 'systemPreferences.isInvertedColorScheme', label: 'isInvertedColorScheme', desc: 'Whether high contrast is on' },
+            { name: 'systemPreferences.getColor', label: 'getColor("highlight")', desc: 'Get a system color', args: ['highlight'] },
+            { name: 'systemPreferences.getAccentColor', label: 'getAccentColor', desc: 'Get the accent color' },
+            { name: 'systemPreferences.isHighContrastColorScheme', label: 'isHighContrastColorScheme', desc: 'Whether the high-contrast theme is on' },
+            { name: 'systemPreferences.areAnimationsEnabled', label: 'areAnimationsEnabled', desc: 'Whether animations are enabled' },
+            { name: 'systemPreferences.isTransparencyEnabled', label: 'isTransparencyEnabled', desc: 'Whether transparency is enabled' },
+            { name: 'systemPreferences.getMediaAccessStatus', label: 'getMediaAccessStatus', desc: 'Get media access status', args: ['camera'] },
+            { name: 'systemPreferences.askForMediaAccess', label: 'askForMediaAccess', desc: 'Request media access', args: ['camera'] },
+        ]
+    },
+    {
+        id: 'safeStorage', icon: '🔒', title: 'SafeStorage', desc: 'isEncryptionAvailable, encryptString, decryptString, getSelectedStorageBackend',
+        methods: [
+            { name: 'safeStorage.isEncryptionAvailable', label: 'isEncryptionAvailable', desc: 'Whether encryption is available' },
+            { name: 'safeStorage.encryptString', label: 'encryptString("secret")', desc: 'Encrypt a string', args: ['my secret data'] },
+            { name: 'safeStorage.getSelectedStorageBackend', label: 'getSelectedStorageBackend', desc: 'Get the encryption backend' },
+        ]
+    },
+    {
+        id: 'net', icon: '🌍', title: 'Net', desc: 'fetch, request, isOnline, getOnline',
+        methods: [
+            { name: 'net.fetch', label: 'fetch("https://httpbin.org/get")', desc: 'HTTP GET', args: ['https://httpbin.org/get', {method:'GET',timeout:10}] },
+            { name: 'net.request', label: 'request("GET","https://httpbin.org/get")', desc: 'HTTP request', args: ['GET', 'https://httpbin.org/get'] },
+            { name: 'net.isOnline', label: 'isOnline', desc: 'Check the network' },
+            { name: 'net.getOnline', label: 'getOnline', desc: 'Get the network status' },
+        ]
+    },
+    {
+        id: 'process', icon: '⚡', title: 'Process', desc: 'getProcessMemoryInfo, getCPUUsage, getProcessId, getVersions, etc.',
+        methods: [
+            { name: 'process.getProcessId', label: 'getProcessId', desc: 'Get the process ID' },
+            { name: 'process.getProcessPath', label: 'getProcessPath', desc: 'Get the process path' },
+            { name: 'process.getProcessMemoryInfo', label: 'getProcessMemoryInfo', desc: 'Get process memory' },
+            { name: 'process.getSystemMemoryInfo', label: 'getSystemMemoryInfo', desc: 'Get system memory' },
+            { name: 'process.getCPUUsage', label: 'getCPUUsage', desc: 'Get CPU usage' },
+            { name: 'process.getIOCounters', label: 'getIOCounters', desc: 'Get IO statistics' },
+            { name: 'process.getVersions', label: 'getVersions', desc: 'Get version info' },
+            { name: 'process.getCreationTime', label: 'getCreationTime', desc: 'Get the creation time' },
+            { name: 'process.getResourceUsage', label: 'getResourceUsage', desc: 'Get resource usage' },
+            { name: 'process.getEnvironmentVariable', label: 'getEnv("PATH")', desc: 'Get an environment variable', args: ['PATH'] },
+            { name: 'process.getCommandLineArgs', label: 'getCommandLineArgs', desc: 'Get command-line arguments' },
+            { name: 'process.getWorkingDirectory', label: 'getWorkingDirectory', desc: 'Get the working directory' },
+            { name: 'process.getArchitecture', label: 'getArchitecture', desc: 'Get the process architecture' },
+            { name: 'process.getSystemArchitecture', label: 'getSystemArchitecture', desc: 'Get the system architecture' },
+            { name: 'process.getUptime', label: 'getUptime', desc: 'Get the uptime' },
+        ]
+    },
+    {
+        id: 'browserView', icon: '📄', title: 'BrowserView', desc: 'create, setBounds, setBackgroundColor, webContents, remove',
+        methods: [
+            { name: 'browserView.create', label: 'create', desc: 'Create a BrowserView', args: [{}] },
+            { name: 'browserView.setBounds', label: 'setBounds', desc: 'Set the bounds', args: [1, {x:0,y:0,width:400,height:300}] },
+            { name: 'browserView.setBackgroundColor', label: 'setBackgroundColor', desc: 'Set the background color', args: [1, '#ffffff'] },
+            { name: 'browserView.webContents', label: 'webContents', desc: 'Get webContents', args: [1] },
+            { name: 'browserView.remove', label: 'remove', desc: 'Remove the BrowserView', args: [1] },
+        ]
+    },
+    {
+        id: 'ipcMain', icon: '📡', title: 'ipcMain', desc: 'on, off, once, handle, removeHandler',
+        methods: [
+            { name: 'ipcMain.on', label: 'on("channel")', desc: 'Listen on IPC', args: ['channel-name'] },
+            { name: 'ipcMain.once', label: 'once("channel")', desc: 'Listen once', args: ['channel-name'] },
+            { name: 'ipcMain.handle', label: 'handle("channel")', desc: 'Register a handler', args: ['channel-name'] },
+            { name: 'ipcMain.off', label: 'off("channel")', desc: 'Stop listening', args: ['channel-name'] },
+            { name: 'ipcMain.removeHandler', label: 'removeHandler("channel")', desc: 'Remove the handler', args: ['channel-name'] },
+        ]
+    },
+    {
+        id: 'netLog', icon: '📜', title: 'netLog', desc: 'startLogging, stopLogging',
+        methods: [
+            { name: 'netLog.startLogging', label: 'startLogging', desc: 'Start network logging', args: ['netlog.json'] },
+            { name: 'netLog.stopLogging', label: 'stopLogging', desc: 'Stop network logging' },
+        ]
+    },
+    {
+        id: 'utilityProcess', icon: '🔧', title: 'utilityProcess', desc: 'fork',
+        methods: [
+            { name: 'utilityProcess.fork', label: 'fork("notepad.exe")', desc: 'Create a child process', args: ['notepad.exe', []] },
+        ]
+    },
+    {
+        id: 'touchBar', icon: '🖐️', title: 'TouchBar', desc: 'create',
+        methods: [
+            { name: 'touchBar.create', label: 'create', desc: 'Create a TouchBar', args: [[]] },
+        ]
+    },
+    {
+        id: 'shareMenu', icon: '📤', title: 'shareMenu', desc: 'show',
+        methods: [
+            { name: 'shareMenu.show', label: 'show', desc: 'Show the share menu', args: [{text:'Hello'}] },
+        ]
+    },
+    {
+        id: 'contextBridge', icon: '🌉', title: 'contextBridge', desc: 'isAvailable, exposeInMainWorld',
+        methods: [
+            { name: 'contextBridge.isAvailable', label: 'isAvailable', desc: 'Whether available' },
+            { name: 'contextBridge.exposeInMainWorld', label: 'exposeInMainWorld', desc: 'Expose an API', args: ['myAPI', {version:'1.0'}] },
+        ]
+    },
+    {
+        id: 'crashReporter', icon: '💥', title: 'Crash Reporter', desc: 'generateTestReport',
+        methods: [
+            { name: 'crashReporter.generateTestReport', label: 'generateTestReport', desc: 'Generate a test crash report' },
+        ]
+    },
+    {
+        id: 'capture', icon: '📸', title: 'Screenshot', desc: 'captureScreenshot',
+        methods: [
+            { name: 'captureScreenshot', label: 'captureScreenshot', desc: 'Capture a screenshot' },
+        ]
+    },
+    {
+        id: 'printing', icon: '🖨️', title: 'Printing', desc: 'print, printToPDF',
+        methods: [
+            { name: 'print', label: 'print', desc: 'Print the current page' },
+            { name: 'printToPDF', label: 'printToPDF', desc: 'Print to PDF' },
+        ]
+    },
+    {
+        id: 'updater', icon: '🔄', title: 'Auto Update', desc: 'checkForUpdates',
+        methods: [
+            { name: 'updater.checkForUpdates', label: 'checkForUpdates', desc: 'Check for updates', args: ['https://nefu.app/update'] },
+        ]
+    },
+    {
+        id: 'tray', icon: '📌', title: 'Tray', desc: 'setToolTip, setTitle, displayBalloon, removeBalloon, isDestroyed',
+        methods: [
+            { name: 'tray.setToolTip', label: 'setToolTip("Nefu")', desc: 'Set the tray tooltip', args: ['Nefu App'] },
+            { name: 'tray.setTitle', label: 'setTitle("Nefu")', desc: 'Set the tray title', args: ['Nefu'] },
+            { name: 'tray.displayBalloon', label: 'displayBalloon', desc: 'Show a tray balloon', args: [{title:'Nefu',content:'Hello'}] },
+            { name: 'tray.removeBalloon', label: 'removeBalloon', desc: 'Remove the balloon' },
+            { name: 'tray.isDestroyed', label: 'isDestroyed', desc: 'Whether the tray is destroyed' },
+        ]
+    },
+    {
+        id: 'desktopCapturer', icon: '🖵', title: 'DesktopCapturer', desc: 'getSources',
+        methods: [
+            { name: 'desktopCapturer.getSources', label: 'getSources', desc: 'Get screen sources', args: [{}] },
+        ]
+    },
+];
+
+// ============================================================
+// Rendering engine
+// ============================================================
+let nefuReady = false;
+let isNefu = typeof window.nefu !== 'undefined' && typeof window.nefu.invoke === 'function';
+
+function init() {
+    renderSidebar();
+    renderSections();
+    // Select the first item by default
+    const firstLink = document.querySelector('#navList a');
+    if (firstLink) {
+        firstLink.classList.add('active');
+        showSection(MODULES[0].id);
+    }
+    checkNefu();
+}
+
+function renderSidebar() {
+    const nav = document.getElementById('navList');
+    MODULES.forEach((mod, idx) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.dataset.section = mod.id;
+        a.innerHTML = `<span class="nav-icon">${mod.icon}</span> ${mod.title} <span class="badge-count">${mod.methods.length}</span>`;
+        a.onclick = (e) => {
+            e.preventDefault();
+            document.querySelectorAll('#navList a').forEach(el => el.classList.remove('active'));
+            a.classList.add('active');
+            showSection(mod.id);
+        };
+        li.appendChild(a);
+        nav.appendChild(li);
+    });
+}
+
+function renderSections() {
+    const container = document.getElementById('sectionsContainer');
+    MODULES.forEach(mod => {
+        const section = document.createElement('div');
+        section.className = 'section';
+        section.id = 'section-' + mod.id;
+
+        const card = document.createElement('div');
+        card.className = 'module-card';
+
+        // Title
+        const title = document.createElement('div');
+        title.className = 'module-title';
+        title.innerHTML = `<span class="title-icon">${mod.icon}</span> ${mod.title} <span style="font-size:0.75rem;color:var(--nefu-text-muted);font-weight:400;margin-left:8px;">${mod.desc}</span>`;
+        card.appendChild(title);
+
+        // Button group
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'btn-group-nefu';
+
+        // Run All button
+        const runAllBtn = document.createElement('button');
+        runAllBtn.className = 'btn btn-nefu btn-nefu-sm';
+        runAllBtn.innerHTML = '▶ Run All';
+        runAllBtn.onclick = () => runAllMethods(mod.id);
+        btnGroup.appendChild(runAllBtn);
+
+        // Individual method buttons
+        mod.methods.forEach(method => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-nefu btn-nefu-sm';
+            btn.textContent = method.label;
+            if (method.danger) {
+                btn.style.borderColor = 'var(--nefu-error)';
+                btn.style.color = 'var(--nefu-error)';
+                btn.style.background = 'transparent';
+            }
+            btn.onclick = () => callMethod(mod.id, method);
+            btnGroup.appendChild(btn);
+        });
+
+        card.appendChild(btnGroup);
+
+        // Output area
+        const output = document.createElement('div');
+        output.className = 'output-area';
+        output.id = 'output-' + mod.id;
+        output.textContent = '// Click a button to execute an API call; results will appear here';
+        card.appendChild(output);
+
+        section.appendChild(card);
+        container.appendChild(section);
+    });
+}
+
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+    const sec = document.getElementById('section-' + id);
+    if (sec) sec.classList.add('active');
+    const mod = MODULES.find(m => m.id === id);
+    if (mod) {
+        document.getElementById('pageTitle').textContent = mod.icon + ' ' + mod.title;
+        document.getElementById('pageDesc').textContent = 'All API calls run through window.nefu.invoke(), with results shown in real time — ' + mod.desc;
+    }
+}
+
+function checkNefu() {
+    if (typeof window.nefu !== 'undefined' && typeof window.nefu.invoke === 'function') {
+        isNefu = true;
+        document.getElementById('nefuReadyBanner').classList.add('show');
+        document.getElementById('notNefuBanner').classList.remove('show');
+    } else {
+        isNefu = false;
+        document.getElementById('notNefuBanner').classList.add('show');
+        document.getElementById('nefuReadyBanner').classList.remove('show');
+    }
+}
+
+// ============================================================
+// API call engine
+// ============================================================
+function getOutputEl(modId) {
+    return document.getElementById('output-' + modId);
+}
+
+function appendOutput(modId, text, type) {
+    const el = getOutputEl(modId);
+    if (!el) return;
+    const time = new Date().toLocaleTimeString();
+    const cls = type || 'info';
+    // Remove placeholder
+    if (el.textContent === '// Click a button to execute an API call; results will appear here') {
+        el.textContent = '';
+    }
+    const line = document.createElement('div');
+    line.className = 'output-line';
+    line.innerHTML = `<span class="time">[${time}]</span> <span class="${cls}">${text}</span>`;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+}
+
+function appendJSON(modId, data, prefix) {
+    const el = getOutputEl(modId);
+    if (!el) return;
+    const time = new Date().toLocaleTimeString();
+    if (el.textContent === '// Click a button to execute an API call; results will appear here') {
+        el.textContent = '';
+    }
+    const line = document.createElement('div');
+    line.className = 'output-line';
+    const jsonStr = syntaxHighlight(JSON.stringify(data, null, 2));
+    line.innerHTML = `<span class="time">[${time}]</span> ${prefix ? '<span class="ok">' + prefix + '</span> ' : ''}<span class="json">${jsonStr}</span>`;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+}
+
+function syntaxHighlight(json) {
+    return json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+        .replace(/"([^"]*)"(?=\s*[,}\]])/g, '<span class="str">"$1"</span>')
+        .replace(/\b(-?\d+\.?\d*)\b/g, '<span class="num">$1</span>')
+        .replace(/\b(true|false)\b/g, '<span class="bool">$1</span>')
+        .replace(/\bnull\b/g, '<span class="null">null</span>');
+}
+
+async function callMethod(modId, method) {
+    appendOutput(modId, `→ ${method.label} ...`, 'info');
+
+    if (!isNefu) {
+        appendOutput(modId, `✗ Error: not in a Nefu environment, nefu.invoke() is unavailable`, 'err');
+        return;
+    }
+
+    try {
+        const args = method.args || [];
+        const result = await window.nefu.invoke(method.name, ...args);
+        appendJSON(modId, result, `✓ ${method.label} succeeded`);
+    } catch (err) {
+        appendOutput(modId, `✗ ${method.label} error: ${err.message || err}`, 'err');
+    }
+}
+
+async function runAllMethods(modId) {
+    const mod = MODULES.find(m => m.id === modId);
+    if (!mod) return;
+
+    const output = getOutputEl(modId);
+    output.textContent = '';
+
+    appendOutput(modId, `▶ Running all ${mod.methods.length} methods of ${mod.title}...`, 'warn');
+
+    for (const method of mod.methods) {
+        await callMethod(modId, method);
+        // Small delay between calls
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    appendOutput(modId, `✅ All methods of ${mod.title} finished`, 'ok');
+}
+
+// ============================================================
+// Event listeners
+// ============================================================
+window.addEventListener('DOMContentLoaded', init);
+
+// Listen for the nefu-ready event
+window.addEventListener('nefu-ready', () => {
+    nefuReady = true;
+    isNefu = true;
+    document.getElementById('nefuReadyBanner').classList.add('show');
+    document.getElementById('notNefuBanner').classList.remove('show');
+    appendOutput(MODULES[0].id, 'nefu-ready event fired — Nefu runtime is ready', 'ok');
+});
+
+// Periodically check for the nefu object (compatible with preload.js injection)
+setInterval(() => {
+    const wasNefu = isNefu;
+    isNefu = typeof window.nefu !== 'undefined' && typeof window.nefu.invoke === 'function';
+    if (isNefu && !wasNefu) {
+        document.getElementById('nefuReadyBanner').classList.add('show');
+        document.getElementById('notNefuBanner').classList.remove('show');
+    } else if (!isNefu && wasNefu) {
+        document.getElementById('nefuReadyBanner').classList.remove('show');
+        document.getElementById('notNefuBanner').classList.add('show');
+    }
+}, 2000);
+</script>
+</body>
+</html>
